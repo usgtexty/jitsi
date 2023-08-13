@@ -55,67 +55,135 @@
 							</div>
 						</div>
 
-						<strong class="group-label">JSON Web Token</strong>
 						<div class="group">
 							<label
-								for="jitsi_jwt_secret"
+								for="jitsi_is_jaas"
 								class="label">
-								{{ t('jitsi', 'JWT Secret (optional)') }}
+								{{ t('jitsi', 'Is JaaS?') }}
 							</label>
 							<div class="input-group">
 								<input
-									id="jitsi_jwt_secret"
-									v-model="jwtSecret"
-									class="input"
-									type="text">
-							</div>
-						</div>
-						<div v-if="jwtSecret" class="group">
-							<label
-								for="jitsi_jwt_app_id"
-								class="label">
-								{{ t('jitsi', 'JWT App ID') }}
-							</label>
-							<div class="input-group">
-								<input
-									id="jitsi_jwt_app_id"
-									v-model="jwtAppId"
-									class="input"
-									type="text">
-								<div v-if="jwtAppIdMessage" :class="`error-text`">
-									{{ jwtAppIdMessage }}
-								</div>
-							</div>
-						</div>
-						<div v-if="jwtSecret" class="group">
-							<label
-								for="jitsi_jwt_audience"
-								class="label">
-								{{ t('jitsi', 'JWT Audience (optional)') }}
-							</label>
-							<div class="input-group">
-								<input
-									id="jitsi_jwt_audience"
-									v-model="jwtAudience"
-									class="input"
-									type="text">
-							</div>
-						</div>
-						<div v-if="jwtSecret" class="group">
-							<label
-								for="jitsi_jwt_issuer"
-								class="label">
-								{{ t('jitsi', 'JWT Issuer (optional)') }}
-							</label>
-							<div class="input-group">
-								<input
-									id="jitsi_jwt_issuer"
-									v-model="jwtIssuer"
-									class="input"
-									type="text">
+									id="jitsi_is_jaas"
+									v-model="isJaaS"
+									class="admin-checkbox"
+									true-value="1"
+									false-value="0"
+									type="checkbox">
 							</div>
 						</div>
 
+						<template v-if="isJaaS && isJaaS !== '0'">
+							<strong class="group-label">JaaS Config</strong>
+							<div class="group">
+								<label
+									for="jitsi_jaas_app_id"
+									class="label">
+									{{ t('jitsi', 'App ID') }}
+								</label>
+								<div class="input-group">
+									<input
+										id="jitsi_jaas_app_id"
+										v-model="jaasAppId"
+										class="input"
+										type="text"
+										required="required">
+								</div>
+							</div>
+							<div class="group">
+								<label
+									for="jitsi_jaas_key_id"
+									class="label">
+									{{ t('jitsi', 'Key ID') }}
+								</label>
+								<div class="input-group">
+									<input
+										id="jitsi_jaas_key_id"
+										v-model="jaasKeyId"
+										class="input"
+										type="text"
+										required="required">
+								</div>
+							</div>
+							<div class="group">
+								<label
+									for="jitsi_jaas_private_key"
+									class="label">
+									{{ t('jitsi', 'Private key') }}
+								</label>
+								<div class="input-group">
+									<textarea
+										id="jitsi_jaas_private_key"
+										v-model="jaasPrivateKey"
+										class="input"
+										type="text"
+										rows="6"
+										required="required" />
+								</div>
+							</div>
+						</template>
+
+						<template v-if="!isJaaS || isJaaS === '0'">
+							<strong class="group-label">JSON Web Token</strong>
+							<div class="group">
+								<label
+									for="jitsi_jwt_secret"
+									class="label">
+									{{ t('jitsi', 'JWT Secret (optional)') }}
+								</label>
+								<div class="input-group">
+									<input
+										id="jitsi_jwt_secret"
+										v-model="jwtSecret"
+										class="input"
+										type="text">
+								</div>
+							</div>
+							<div v-if="jwtSecret" class="group">
+								<label
+									for="jitsi_jwt_app_id"
+									class="label">
+									{{ t('jitsi', 'JWT App ID') }}
+								</label>
+								<div class="input-group">
+									<input
+										id="jitsi_jwt_app_id"
+										v-model="jwtAppId"
+										class="input"
+										type="text">
+									<div v-if="jwtAppIdMessage" :class="`error-text`">
+										{{ jwtAppIdMessage }}
+									</div>
+								</div>
+							</div>
+							<div v-if="jwtSecret" class="group">
+								<label
+									for="jitsi_jwt_audience"
+									class="label">
+									{{ t('jitsi', 'JWT Audience (optional)') }}
+								</label>
+								<div class="input-group">
+									<input
+										id="jitsi_jwt_audience"
+										v-model="jwtAudience"
+										class="input"
+										type="text">
+								</div>
+							</div>
+							<div v-if="jwtSecret" class="group">
+								<label
+									for="jitsi_jwt_issuer"
+									class="label">
+									{{ t('jitsi', 'JWT Issuer (optional)') }}
+								</label>
+								<div class="input-group">
+									<input
+										id="jitsi_jwt_issuer"
+										v-model="jwtIssuer"
+										class="input"
+										type="text">
+								</div>
+							</div>
+						</template>
 						<div class="group group--centered">
 							<button
 								type="submit"
@@ -161,6 +229,10 @@ export default {
 			jwtAppIdMessage: '',
 			jwtAudience: '',
 			jwtIssuer: '',
+			isJaaS: false,
+			jaasAppId: '',
+			jaasKeyId: '',
+			jaasPrivateKey: '',
 			serverUrl: '',
 			serverUrlStatus: false,
 			serverUrlMessage: '',
@@ -180,6 +252,10 @@ export default {
 		this.jwtIssuer = await this.loadSetting('jwt_issuer')
 		this.serverUrl = await this.loadSetting('jitsi_server_url')
 		this.helpLink = await this.loadSetting('help_link')
+		this.isJaaS = await this.loadSetting('is_jaas')
+		this.jaasAppId = await this.loadSetting('jaas_app_id')
+		this.jaasKeyId = await this.loadSetting('jaas_key_id')
+		this.jaasPrivateKey = await this.loadSetting('jaas_private_key')
 		this.displayJoinUsingTheJitsiApp = await this.loadSetting('display_join_using_the_jitsi_app', '1')
 		this.loading = false
 	},
@@ -202,6 +278,10 @@ export default {
 				await this.updateSetting('jwt_audience', this.jwtAudience),
 				await this.updateSetting('jwt_issuer', this.jwtIssuer),
 				await this.updateSetting('help_link', this.helpLink),
+				await this.updateSetting('is_jaas', this.isJaaS),
+				await this.updateSetting('jaas_app_id', this.jaasAppId),
+				await this.updateSetting('jaas_key_id', this.jaasKeyId),
+				await this.updateSetting('jaas_private_key', this.jaasPrivateKey),
 				await this.updateSetting('display_join_using_the_jitsi_app', this.displayJoinUsingTheJitsiApp),
 			])
 

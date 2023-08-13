@@ -218,6 +218,8 @@ export default {
 			_startMuted: false,
 			serverUrl: null,
 			serverHost: null,
+			isJaaS: false,
+			jaasAppId: '',
 			selectedCamera: null,
 			selectedMicrophone: null,
 			selectedSpeaker: null,
@@ -300,6 +302,8 @@ export default {
 
 		const jitsiEle = document.getElementById('jitsi')
 		this.serverUrl = jitsiEle.dataset.serverUrl
+		this.isJaaS = jitsiEle.dataset.isJaas
+		this.jaasAppId = jitsiEle.dataset.jaasAppId
 		this.$root.helpLink = jitsiEle.dataset.helpLink
 		this.displayJoinUsingTheJitsiApp = jitsiEle.dataset.displayJoinUsingTheJitsiApp === 'true'
 		const url = new URL(this.serverUrl)
@@ -324,7 +328,12 @@ export default {
 			return
 		}
 
-		this.joinAppLink = `${this.serverUrl}${this.room.publicId}`
+		if (this.isJaaS === true || this.isJaaS === 'true' || this.isJaaS === '1') {
+			this.joinAppLink = `${this.serverUrl}${this.jaasAppId}/${this.room.publicId}`
+		} else {
+			this.joinDesktopAppLink = this.joinAppLink.replace(/^http[s]*/, 'jitsi-meet')
+		}
+
 		this.joinDesktopAppLink = this.joinAppLink.replace(/^http[s]*/, 'jitsi-meet')
 
 		const token = await this.issueToken()
@@ -407,6 +416,10 @@ export default {
 					MOBILE_APP_PROMO: false,
 					SHARING_FEATURES: [],
 				},
+			}
+
+			if (this.isJaaS === true || this.isJaaS === 'true' || this.isJaaS === '1') {
+			  options.roomName = `${this.jaasAppId}/${this.room.publicId}`
 			}
 
 			if (token !== null) {

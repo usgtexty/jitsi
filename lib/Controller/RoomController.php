@@ -124,34 +124,47 @@ class RoomController extends AbstractController {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
-		$jwtSecret = $this->appConfig->jwtSecret();
-
-		if (empty($jwtSecret)) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
-		}
-
 		$context = [
 			'user' => [
 				'name' => $displayName,
 			],
 		];
 
-		$jwt = new JWT($jwtSecret, 'HS256');
-		$token = $jwt->encode(
-			[
-				'context' => $context,
-				'aud' => $this->appConfig->jwtAudience(),
-				'iss' => $this->appConfig->jwtIssuer(),
-				'sub' => '*',
-				'room' => $room->getPublicId(),
-				'exp' => time() + 12 * 60 * 60,
-			]
-		);
+		$payload = [
+			'context' => $context,
+			'sub' => '*',
+			'room' => $room->getPublicId(),
+			'exp' => time() + 12 * 60 * 60,
+		];
+		$headers = [];
 
-		return new DataResponse(
-			[
-				'token' => $token,
-			]
-		);
+		if ($this->appConfig->isJaaS()) {
+			$kid = $this->appConfig->jaasKeyId();
+			$pk = $this->appConfig->jaasPrivateKey();
+			if (empty($kid) && empty($pk)) {
+				return new DataResponse([], Http::STATUS_NOT_FOUND);
+			}
+
+			$jwt = new JWT([$kid => openssl_pkey_get_Private($pk)], 'RS256');
+			$headers['kid'] = $kid;
+			$payload['aud'] = $this->appConfig->jaasAudience();
+			$payload['iss'] = $this->appConfig->jaasIssuer();
+			$payload['sub'] = $this->appConfig->jaasAppId();
+		} else {
+			$jwtSecret = $this->appConfig->jwtSecret();
+
+			if (empty($jwtSecret)) {
+				return new DataResponse([], Http::STATUS_NOT_FOUND);
+			}
+
+			$payload['aud'] = $this->appConfig->jwtAudience();
+			$payload['iss'] = $this->appConfig->jwtIssuer();
+
+			$jwt = new JWT($jwtSecret, 'HS256');
+		}
+
+		return new DataResponse([
+			'token' => $jwt->encode($payload, $headers),
+		]);
 	}
 }

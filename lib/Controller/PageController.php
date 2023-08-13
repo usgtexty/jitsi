@@ -62,6 +62,8 @@ class PageController extends AbstractController {
 			[
 				'loggedIn' => $loggedIn,
 				'serverUrl' => $this->appConfig->jitsiServerUrl(),
+				'isJaaS' => $this->appConfig->isJaaS(),
+				'jaasAppId' => $this->appConfig->jaasAppId(),
 				'helpLink' => $this->appConfig->helpLink(),
 				'display_join_using_the_jitsi_app' => $this->appConfig->displayJoinUsingTheJitsiApp(),
 			],
